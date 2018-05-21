@@ -1,0 +1,30 @@
+body {
+  padding-top: 10px;
+}
+
+.centered {
+  text-align: center;
+}
+
+.navbar .login {
+  float: right;
+}
+.navbar .login form {
+  margin: 0; padding: 0;
+}
+
+.footer {
+
+  margin-top: 30px;
+}
+
+.add-remove input {
+    width: 30px;
+    text-algin: center;
+}
+
+#topmessagebar {
+    position: -webkit-sticky;  // required for Safari
+    position: sticky;
+    top: 15px; // required as well.
+}
