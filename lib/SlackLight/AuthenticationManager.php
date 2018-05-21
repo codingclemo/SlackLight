@@ -37,4 +37,26 @@ class AuthenticationManager extends BaseObject {
 	public static function getAuthenticatedUser() {
 		return self::isAuthenticated() ? DataManager::getUserById($_SESSION['user']) : null;
 	}
+
+    public static function registerUser(string $userName, string $password) : bool {
+        if (DataManager::getUserByUserName($userName)) {
+            self::signOut();
+            return false;
+        } else {
+        // create a new user in the db and pass on its generated id to variable $user
+
+           $x =  DataManager::createUser(
+               $userName,
+               hash('sha1', $userName . '|' . $password)
+           );
+
+
+        $user = DataManager::getUserById($x);
+        var_dump($x);
+        var_dump($user);
+
+        $_SESSION['user'] = $user->getId();
+        return true;
+        }
+    }
 }

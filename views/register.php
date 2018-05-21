@@ -2,6 +2,7 @@
 
 use SlackLight\AuthenticationManager;
 use SlackLight\Util;
+use Data\DataManager;
 
 if (AuthenticationManager::isAuthenticated()) {
     Util::redirect("index.php");
@@ -23,7 +24,7 @@ $userName = isset($_REQUEST['userName']) ? $_REQUEST['userName'] : null;
         </div>
         <div class="panel-body">
 
-            <form class="form-horizontal" method="post" action="<?php echo Util::action(SlackLight\Controller::ACTION_LOGIN, array('view' => $view)); ?>">
+            <form class="form-horizontal" method="post" action="<?php echo Util::action(SlackLight\Controller::ACTION_REGISTER, array('view' => $view)); ?>">
                 <div class="form-group">
                     <label for="inputName" class="col-sm-2 control-label">User name:</label>
                     <div class="col-sm-6">

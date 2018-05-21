@@ -23,6 +23,7 @@ class Controller
 	const ACTION_ORDER = 'placeOrder';
 	const ACTION_LOGIN = 'login';
 	const ACTION_LOGOUT = 'logout';
+	const ACTION_REGISTER = 'register';
 	const USER_NAME = 'userName';
 	const USER_PASSWORD = 'password';
 
@@ -105,6 +106,12 @@ class Controller
 				AuthenticationManager::signOut();
 				Util::redirect();
 				break;
+
+            case self::ACTION_REGISTER :
+                if (!AuthenticationManager::registerUser($_REQUEST[self::USER_NAME], $_REQUEST[self::USER_PASSWORD]))
+                    self::forwardRequest(['User already exists.']);
+                Util::redirect();
+                break;
 
 			default :
 				throw new \Exception('Unknown controller action: ' . $action);

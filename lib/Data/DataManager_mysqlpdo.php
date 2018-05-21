@@ -173,6 +173,40 @@ class DataManager implements IDataManager {
 		return $user;
 	}
 
+    public static function createUser(string $userName, string $passwordHash) : int {
+
+        $con = self::getConnection();
+
+        $con->beginTransaction();
+
+        try {
+
+            self::query($con,"
+                INSERT INTO users (
+                    userName,
+                    passwordHash
+                ) VALUES (
+                    ?, ?
+                );
+            
+                ", [
+                    $userName,
+                    $passwordHash
+                ]);
+            $userId = self::lastInsertId($con);
+
+            $con->commit();
+
+        } catch (\Exception $e) {
+            $con->rollBack();
+            $userId = null;
+        }
+
+        self::closeConnection($con);
+
+	    return $userId;
+    }
+
 	public static function createOrder(int $userId, array $bookIds, string $nameOnCard, string $cardNumber) : int {
 
 		$con = self::getConnection();
