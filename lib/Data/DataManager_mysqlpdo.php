@@ -269,7 +269,7 @@ class DataManager implements IDataManager {
 			WHERE userId = ?;
 		", [$userId]);
 
-        $channels[] = null;
+        //$channels = null;
 
         //get name and description from those channels
         while ($channel = self::fetchObject($res)) {

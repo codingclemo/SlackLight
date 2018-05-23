@@ -21,46 +21,19 @@ use SlackLight\Channel;
         <?php
             $user = AuthenticationManager::getAuthenticatedUser();
             $channels[] = \Data\DataManager::getChannelsByUserId($user->getid());
-            var_dump($channels);
-            echo " -----------------------------\n";
 
-            
-
-
-            /*
+            // for some reason the array is stored in an array...hence this outer loop
             foreach ($channels as $channel) {
-                if ($channel->_visible == 1) {
-                    echo "<li>page</li>";
+                foreach ($channel as $realChannel) {
+                    if ($realChannel === null) {
+                    } else {
+                        echo "<li>";
+                        echo '<a <ref=\"#\" class=\"w3-bar-item w3-button\">';
+                        echo $realChannel->getName();
+                        echo "</a> </li>";
+                    }
                 }
             }
-            */
-            //echo $channels[1]->getName();
-
-            /*foreach ($channels as $channel) {
-
-                var_dump($channel);
-                echo " -----------------------------\n";
-                //if ($channel->getChannelId() > 0) {
-                    //echo "<li>";
-                    //echo '<a <ref="#" class="w3-bar-item w3-button">';
-                    //echo $channel->getName();
-                    //echo '</a>';
-                    //echo "</li>";
-                //}
-            }*/
         ?>
-        <li>
-            <a <ref="#" class="w3-bar-item w3-button">Channel 1</a>
-        </li>
-
-       <!-- <li>
-            <a href="#" class="w3-bar-item w3-button">Channel 1</a>
-        </li>
-        <li>
-            <a href="#" class="w3-bar-item w3-button">Channel 2</a>
-        </li>
-        <li>
-            <a href="#" class="w3-bar-item w3-button">Channel 3</a>
-        </li>-->
     </ul>
 </div>
