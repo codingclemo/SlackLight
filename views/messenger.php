@@ -1,7 +1,9 @@
 
 
 
-<?php require_once('partials/header.php'); ?>
+<?php require_once('partials/header.php');
+use SlackLight\AuthenticationManager;
+?>
 
 
     <div class="container-fluid">
@@ -9,18 +11,34 @@
 
             <?php require_once('partials/sidebar.php'); ?>
 
+            <?php /*
+            $user = AuthenticationManager::getAuthenticatedUser();
+            $channels[] = \Data\DataManager::getChannelsByUserId($user->getid());
+
+            $channelName = isset($_REQUEST['channel']) ? $_REQUEST['channel'] : null;
+*/
+            //var_dump($userChannels);
+            //$channelDesc = null;
+
+            foreach ($userChannels as $realChannel) {
+                if ($realChannel->getName() == $channelName) {
+                    $channelDesc = $realChannel->getDescription();
+                    $channelId = $realChannel->getId();
+                }
+            }
+            ?>
 
 
             <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
                 <div id="topmessagebar">
-                    <h2 class="page-header">#general</h2>
+                    <h2 class="page-header">#<?php echo $channelName?></h2>
 
-                    <h4 class="sub-header">Company-wide announcements and work-based matters</h4>
+                    <h4 class="sub-header"><?php echo $channelDesc?></h4>
 
                 </div>
 
                 <br/>
-
+                <?php //TODO: Add messages in here ?>
 
                 <div class="panel panel-default">
                     <div class="panel-heading">

@@ -270,31 +270,38 @@ class DataManager implements IDataManager {
 		", [$userId]);
 
         //$channels = null;
-
         //get name and description from those channels
         while ($channel = self::fetchObject($res)) {
+            if ($channel !== null) {
+                $resTwo = self::query($con, "
+                    SELECT name, description
+                    FROM channels
+                    WHERE id = ?;
+                ", [$channel->channelId]);
 
-            $resTwo = self::query($con, "
-                SELECT name, description
-                FROM channels
-                WHERE id = ?;
-            ", [$channel->channelId]);
-
-            //TODO: continue here and figure out why the messenger.php cannot be found n stuff
-            // create the channels as objects
-            while ($channelDetails = self::fetchObject($resTwo)) {
-                $channels[] = new Channel($channel->channelId,
-                                          $channelDetails->name,
-                                          $channelDetails->description,
-                                          $channel->marked);
+                // create the channels as objects
+                while ($channelDetails = self::fetchObject($resTwo)) {
+                    $channels[] = new Channel($channel->channelId,
+                        $channelDetails->name,
+                        $channelDetails->description,
+                        $channel->marked);
+                }
+                self::close($resTwo);
             }
+
         }
 
-        self::close($resTwo);
+       // if ($channel !== null) { self::close($resTwo); }
         self::close($res);
         self::closeConnection($con);
 
         return $channels;
+    }
+
+    public static function getMessages(int $userId, int $channelId) {
+	    $messages = null;
+	    //TODO: get the messages from the db  and store them in $messages
+	    return $messages;
     }
 
 }

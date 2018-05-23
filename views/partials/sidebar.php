@@ -19,18 +19,30 @@ use SlackLight\Channel;
     <ul class="nav nav-sidebar">
 
         <?php
+
             $user = AuthenticationManager::getAuthenticatedUser();
             $channels[] = \Data\DataManager::getChannelsByUserId($user->getid());
 
-            // for some reason the array is stored in an array...hence this outer loop
-            foreach ($channels as $channel) {
-                foreach ($channel as $realChannel) {
-                    if ($realChannel === null) {
-                    } else {
-                        echo "<li>";
-                        echo '<a <ref=\"#\" class=\"w3-bar-item w3-button\">';
-                        echo $realChannel->getName();
-                        echo "</a> </li>";
+
+            $channelName = isset($_REQUEST['channel']) ? $_REQUEST['channel'] : null;
+
+            if ($channels !== null) {
+                // for some reason the array is stored in an array...hence this outer loop
+                foreach ($channels as $channel) {
+                    $GLOBALS['userChannels'] = $channel;
+                    foreach ($channel as $realChannel) {
+                        if ($realChannel === null) {
+                        } else {?>
+                            <li <?php if($realChannel->getName() == $channelName) { ?> class="active" <?php } ?> >
+                                <a href="<?php echo $_SERVER['PHP_SELF']; ?>?view=messenger&channel=<?php echo urlencode($realChannel->getName()) ?>" class=\"w3-bar-item w3-button\">
+                                #<?php echo $realChannel->getName();
+                                    if ($realChannel->isMarked()) {
+                                        ?> <span class="glyphicon glyphicon-star"></span> <?php
+                                    }
+                                ?>
+                                </a>
+                            </li>
+                        <?php }
                     }
                 }
             }

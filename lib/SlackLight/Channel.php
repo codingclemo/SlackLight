@@ -40,7 +40,7 @@ class Channel extends Entity {
         return $this->description;
     }
 
-    public function getMarked() :  bool {
+    public function isMarked() :  bool {
         return $this->marked;
     }
 
