@@ -2,8 +2,10 @@
 
 namespace Data;
 
+use SlackLight\Channel;
 use SlackLight\Category;
 use SlackLight\Book;
+use SlackLight\php;
 use SlackLight\User;
 
 include 'IDataManager.php';
@@ -251,6 +253,48 @@ class DataManager implements IDataManager {
 
 		self::closeConnection($con);
 		return $orderId;
+    }
+
+
+    public static function getChannelsByUserId(int $userId) {
+        $channels = null;
+//	    $user = null;
+
+        $con = self::getConnection();
+
+        //get all the channels that the user has
+        $res = self::query($con, "
+			SELECT channelId, marked
+			FROM channelUserRef
+			WHERE userId = ?;
+		", [$userId]);
+
+        $channels[] = null;
+
+        //get name and description from those channels
+        while ($channel = self::fetchObject($res)) {
+
+            $resTwo = self::query($con, "
+                SELECT name, description
+                FROM channels
+                WHERE id = ?;
+            ", [$channel->channelId]);
+
+            //TODO: continue here and figure out why the messenger.php cannot be found n stuff
+            // create the channels as objects
+            while ($channelDetails = self::fetchObject($resTwo)) {
+                $channels[] = new Channel($channel->channelId,
+                                          $channelDetails->name,
+                                          $channelDetails->description,
+                                          $channel->marked);
+            }
+        }
+
+        self::close($resTwo);
+        self::close($res);
+        self::closeConnection($con);
+
+        return $channels;
     }
 
 }

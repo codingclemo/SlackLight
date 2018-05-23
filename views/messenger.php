@@ -1,10 +1,13 @@
-<?php require_once('views/partials/header.php'); ?>
+
+
+
+<?php require_once('partials/header.php'); ?>
 
 
     <div class="container-fluid">
         <div class="row">
 
-            <?php require_once('views/partials/sidebar.php'); ?>
+            <?php require_once('partials/sidebar.php'); ?>
 
 
 
@@ -85,4 +88,4 @@
     </div>
 
 
-<?php require('views/partials/footer.php');
+<?php require('partials/footer.php');

@@ -45,15 +45,13 @@ class AuthenticationManager extends BaseObject {
         } else {
         // create a new user in the db and pass on its generated id to variable $user
 
-           $x =  DataManager::createUser(
+           $userId =  DataManager::createUser(
                $userName,
                hash('sha1', $userName . '|' . $password)
            );
 
 
-        $user = DataManager::getUserById($x);
-        var_dump($x);
-        var_dump($user);
+        $user = DataManager::getUserById($userId);
 
         $_SESSION['user'] = $user->getId();
         return true;

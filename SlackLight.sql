@@ -62,6 +62,23 @@ CREATE TABLE orders (
 
 
 
+CREATE TABLE channelUserRef (
+  channelId int(11) NOT NULL,
+  userId int(11) NOT NULL,
+  marked int(1) NOT NULL DEFAULT '0',
+  PRIMARY KEY (channelId, userId)
+);
+
+CREATE TABLE channels (
+	id int(11) NOT NULL AUTO_INCREMENT,
+	name char(16) NOT NULL,
+	description varchar(255) NOT NULL,
+	PRIMARY KEY (id),
+	UNIQUE KEY name (name)
+
+) ENGINE=InnoDB AUTO_INCREMENT=1 CHARSET=utf8;;
+
+
 CREATE TABLE users (
 	id int(11) NOT NULL AUTO_INCREMENT,
 
@@ -73,6 +90,13 @@ CREATE TABLE users (
 	UNIQUE KEY userName (userName)
 
 ) ENGINE=InnoDB AUTO_INCREMENT=1 CHARSET=utf8;;
+
+ALTER TABLE channelUserRef
+ADD CONSTRAINT channeluserref_1 FOREIGN KEY (channelId) REFERENCES channels (id) ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE channelUserRef
+ADD CONSTRAINT channeluserref_2 FOREIGN KEY (userId) REFERENCES users (id) ON DELETE CASCADE ON UPDATE CASCADE;
+
+
 
 
 ALTER TABLE books
@@ -104,5 +128,16 @@ INSERT INTO books VALUES (14, 2, 'Expert F# (Expert''s Voice in .NET)', 'Antonio
 INSERT INTO books VALUES (16, 3, 'C Programming Language (2nd Edition)', 'Brian W. Kernighan, Dennis M. Ritchie', '0131103628', 48.36);
 INSERT INTO books VALUES (27, 3, 'C++ Primer Plus (5th Edition)', 'Stephan Prata', ' 9780672326974', 36.94);
 INSERT INTO books VALUES (29, 3, 'The C++ Programming Language', 'Bjarne Stroustrup', '0201700735', 67.49);
-	
+
+
+
+
+
 INSERT INTO users VALUES (1, 'scm4', 'a8af855d47d091f0376664fe588207f334cdad22');
+
+INSERT INTO channels VALUES (1, "social-newsboard", "Learn everything about the latest news and gossip inside the company.");
+INSERT INTO channels VALUES (2, "announcements", "News and updates about the company. Read only.");
+INSERT INTO channels VALUES (3, "announcements-hr", "News from people management. Who joins, who proceeds, who leaves");
+
+INSERT INTO channelUserRef VALUES (1, 1, 0);
+INSERT INTO channelUserRef VALUES (2, 1, 1);

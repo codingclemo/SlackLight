@@ -99,7 +99,7 @@ class Controller
 				if (!AuthenticationManager::authenticate($_REQUEST[self::USER_NAME], $_REQUEST[self::USER_PASSWORD])) {
 					self::forwardRequest(['Invalid user credentials.']);
 				}
-				Util::redirect();
+				Util::redirect("?view=messenger");
 				break;
 
 			case self::ACTION_LOGOUT :
