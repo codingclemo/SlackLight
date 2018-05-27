@@ -7,6 +7,7 @@ use SlackLight\Category;
 use SlackLight\Book;
 use SlackLight\php;
 use SlackLight\User;
+use SlackLight\Message;
 
 include 'IDataManager.php';
 
@@ -298,12 +299,34 @@ class DataManager implements IDataManager {
         return $channels;
     }
 
-    public static function getMessages(int $userId, int $channelId) {
-	    $messages = null;
-	    //TODO: get the messages from the db  and store them in $messages
-	    return $messages;
-    }
+    //TODO: Add input variable int $userId and get information from userMessageRef if msg was read or marked
+    public static function getMessages(int $channelId) {
+        $messages = null;
 
+        $con = self::getConnection();
+
+        //get all the messages that the channel has
+        $res = self::query($con, "
+			SELECT id, authorId, channelId, text, creationTime, edited
+			FROM messages
+			WHERE channelId = ?;
+		", [$channelId]);
+
+        // create the messages as objects
+        while ($message = self::fetchObject($res)) {
+            $messages[] = new Message($message->id,
+                $message->authorId,
+                $message->channelId,
+                $message->text,
+                $message->creationTime,
+                $message->edited);
+        }
+
+        self::close($res);
+        self::closeConnection($con);
+
+        return $messages;
+    }
 }
 
 

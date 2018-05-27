@@ -35,7 +35,7 @@ use SlackLight\Channel;
                         } else {?>
                             <li <?php if($realChannel->getName() == $channelName) { ?> class="active" <?php } ?> >
                                 <a href="<?php echo $_SERVER['PHP_SELF']; ?>?view=messenger&channel=<?php echo urlencode($realChannel->getName()) ?>" class=\"w3-bar-item w3-button\">
-                                #<?php echo $realChannel->getName();
+                                # <?php echo $realChannel->getName();
                                     if ($realChannel->isMarked()) {
                                         ?> <span class="glyphicon glyphicon-star"></span> <?php
                                     }
