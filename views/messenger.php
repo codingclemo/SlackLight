@@ -3,6 +3,7 @@
 
 <?php require_once('partials/header.php');
 use SlackLight\AuthenticationManager;
+use SlackLight\Util;
 ?>
 
 
@@ -72,8 +73,6 @@ use SlackLight\AuthenticationManager;
                         <div class="panel-body">
                             <?php
                             echo $message->getText();
-
-                            echo hash('sha1', "clk" . '|' . "clk");
                             ?>
                         </div>
                     </div>
@@ -84,13 +83,14 @@ use SlackLight\AuthenticationManager;
                 ?>
 
                 <div class="input-group">
-                    <input type="text" class="form-control" placeholder="Jot your message down here">
-                    <span class="input-group-btn">
-                        <button class="btn btn-default" type="button">Send Message!</button>
-                    </span>
+                    <form class="form-horizontal" method="post" id="sendMsg" action="<?php echo Util::action(SlackLight\Controller::ACTION_SENDMSG, array('view' => $view, "channel" => $channelName)); ?>">
+                        <input type="text" class="form-control" name="<?php print SlackLight\Controller::SENDMSG; ?>" placeholder="Message @<?php echo $channelName ?>">
+                    </form>
+                        <span class="input-group-btn" form="sendMsg">
+                            <button class="btn btn-default" type="submit" form="sendMsg"><span class="glyphicon glyphicon-send" ></span></button>
+                        </span>
                 </div><!-- /input-group -->
-
-            <?php
+                <?php
             }
             ?>
                 </div>

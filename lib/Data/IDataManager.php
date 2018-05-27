@@ -10,4 +10,11 @@ interface IDataManager {
     public static function createUser(string $userName, string $passwordHash) : int;
 	public static function createOrder(int $userId, array $bookIds, string $nameOnCard, string $cardNumber) : int;
     public static function getMessages(int $channelId);
+    //TODO: add these functions:
+    public static function createMessage(int $authorId, int $channelId, string $text);
+    /*
+    public static function editMessage(int $messageId, string text);
+    public static function markMessage(int $messageId, int $userId);
+    public static function markChannel(int $channelId, int $userId);
+    */
 }

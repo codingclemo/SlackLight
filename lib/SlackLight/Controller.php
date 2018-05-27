@@ -24,6 +24,8 @@ class Controller
 	const ACTION_LOGIN = 'login';
 	const ACTION_LOGOUT = 'logout';
 	const ACTION_REGISTER = 'register';
+    const ACTION_SENDMSG = 'sendMsg';
+    const SENDMSG = 'sendMessage';
 	const USER_NAME = 'userName';
 	const USER_PASSWORD = 'password';
 
@@ -104,7 +106,7 @@ class Controller
 
 			case self::ACTION_LOGOUT :
 				AuthenticationManager::signOut();
-				Util::redirect();
+				Util::redirect("?view=welcome");
 				break;
 
             case self::ACTION_REGISTER :
@@ -112,8 +114,23 @@ class Controller
                     self::forwardRequest(['User already exists.']);
                 Util::redirect();
                 break;
+            case self::ACTION_SENDMSG :
+                $user = AuthenticationManager::getAuthenticatedUser();
+                $channel = isset($_REQUEST['channel']) ? (string) $_REQUEST['channel'] : null;
 
-			default :
+                if ($user == null) {
+                    $this->forwardRequest(['Not logged in.']);
+                    break;
+                }
+
+                if ($this->sendMessage($channel, $_POST[self::SENDMSG])) {
+                    break;
+                } else {
+                    return null;
+                }
+                break;
+
+            default :
 				throw new \Exception('Unknown controller action: ' . $action);
 				break;
 		}
@@ -172,5 +189,30 @@ class Controller
 			exit();
 		}
 	}
+
+    protected function sendMessage(string $channelName = null, string $text =  null) : bool {
+        $errors = array();
+        if (count($errors) > 0) {
+            $this->forwardRequest($errors);
+            return false;
+        }
+        // send message
+        $user = AuthenticationManager::getAuthenticatedUser();
+        //$channel = DataManager::getChannelById($channelId);
+        if ($channelName) {
+            $channel = DataManager::getChannelByName($channelName);
+            $message = \Data\DataManager::createMessage($user->getId(), $channel->getId(), $text);
+        } else {
+            $message = null;
+        }
+
+
+        if (!$message) {
+            $this->forwardRequest(array('could not create message'));
+            return false;
+        }
+        Util::redirect('index.php?view=messenger&channel=' . $channel->getName());
+        return true;
+    }
 
 }

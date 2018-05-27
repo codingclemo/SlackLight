@@ -31,7 +31,12 @@ if (isset($_GET['errors'])) {
                 <span class="icon-bar"></span>
                 <span class="icon-bar"></span>
             </button>
-            <a class="navbar-brand" href="/SlackLight">SlackLight</a>
+            <?php if ($user == null): ?>
+                <a class="navbar-brand" href="/SlackLight">SlackLight</a>
+            <?php else: ?>
+                <a class="navbar-brand" href="/SlackLight/index.php?view=messenger">SlackLight</a>
+            <?php endif; ?>
+            <?php  ?>
         </div>
 
 

@@ -2,6 +2,7 @@
 
 namespace Data;
 
+use SlackLight\AuthenticationManager;
 use SlackLight\Channel;
 use SlackLight\Category;
 use SlackLight\Book;
@@ -326,6 +327,97 @@ class DataManager implements IDataManager {
         self::closeConnection($con);
 
         return $messages;
+    }
+
+    public static function createMessage(int $authorId, int $channelId, string $text)
+    {
+        $con = self::getConnection();
+
+        $con->beginTransaction();
+
+        try {
+            self::query($con, "
+                INSERT INTO messages (authorId, channelId, text, creationTime, edited) 
+                            VALUES (?, ?, ?, NOW(), 0);
+            ", [$authorId, $channelId, $text]);
+            $msgId = self::lastInsertId($con);
+            $con->commit();
+        } catch (\Exception $e) {
+            $con->rollBack();
+            $msgId = NULL;
+        }
+
+	    self::closeConnection($con);
+	    return $msgId;
+    }
+
+    public static function getMessage(int $msgId)
+    {
+        $con = self::getConnection();
+
+        $res = self::query($con, "
+            SELECT *
+            FROM messages
+            WHERE id == ?
+        ", [$msgId]);
+
+        $message = self::fetchObject($res);
+        $msg = new Message($message->id,
+            $message->authorId,
+            $message->channelId,
+            $message->text,
+            $message->creationTime,
+            $message->edited);
+
+
+        self::closeConnection($con);
+        return $msg;
+    }
+
+
+    public static function getChannelById(int $channelId)
+    {
+        $con = self::getConnection();
+
+        $res = self::query($con, "
+            SELECT *
+            FROM channels
+            WHERE id == ?
+        ", [$channelId]);
+
+        $channel = self::fetchObject($res);
+        $chn = new Channel($channel->id, $channel->name, $channel->description);
+
+        self::closeConnection($con);
+        return $chn;
+    }
+
+    public static function getChannelByName(string $channelName)
+    {
+        $user = AuthenticationManager::getAuthenticatedUser();
+        $con = self::getConnection();
+
+        $res = self::query($con, "
+            SELECT *
+            FROM channels c
+            WHERE c.name LIKE ?
+        ", [$channelName]);
+        $channel = self::fetchObject($res);
+
+        // this is kind of a pain in the ass but necessary due to the channelUserRef
+        $resTwo = self::query($con, "
+            SELECT marked
+            FROM channelUserRef
+            WHERE channelId = ?
+            AND userId = ?
+        ", [$channel->id, $user->getId()]);
+        $m = self::fetchObject($resTwo);
+        $marked = $m != 0;
+
+        $chn = new Channel($channel->id, $channel->name, $channel->description, $marked);
+
+        self::closeConnection($con);
+        return $chn;
     }
 }
 
