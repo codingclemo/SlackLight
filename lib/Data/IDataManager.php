@@ -12,6 +12,8 @@ interface IDataManager {
     public static function getMessages(int $channelId);
     //TODO: add these functions:
     public static function createMessage(int $authorId, int $channelId, string $text);
+    public static function markChannel(int $channelId, int $userId);
+    public static function markMessage(int $messageId);
     /*
     public static function editMessage(int $messageId, string text);
     public static function markMessage(int $messageId, int $userId);

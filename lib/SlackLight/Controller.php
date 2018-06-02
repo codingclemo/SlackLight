@@ -25,7 +25,12 @@ class Controller
 	const ACTION_LOGOUT = 'logout';
 	const ACTION_REGISTER = 'register';
     const ACTION_SENDMSG = 'sendMsg';
+    const ACTION_SWITCHMARKCHANNEL = 'switchMarkChannel';
+    const ACTION_SWITCHMARKMESSAGE = 'switchMarkMessage';
+    const ACTION_UPDATELASTREAD = 'updateLastRead';
     const SENDMSG = 'sendMessage';
+    const SWITCHMARKCHANNEL = 'switchMarked';
+    const SWITCHMARKMESSAGE = 'switchMarkedMessage';
 	const USER_NAME = 'userName';
 	const USER_PASSWORD = 'password';
 
@@ -126,10 +131,51 @@ class Controller
                 if ($this->sendMessage($channel, $_POST[self::SENDMSG])) {
                     break;
                 } else {
-                    return null;
+                    return false;
                 }
                 break;
 
+            case self::ACTION_SWITCHMARKCHANNEL :
+                $user = AuthenticationManager::getAuthenticatedUser();
+                $channel = isset($_REQUEST['channel']) ? (string) $_REQUEST['channel'] : null;
+
+                if ($user == null) {
+                    $this->forwardRequest(['Not logged in.']);
+                }
+
+                if ($this->switchMarked($channel, $_POST[self::SWITCHMARKCHANNEL])) {
+                    break;
+                } else {
+                    return false;
+                }
+                break;
+
+            case self::ACTION_SWITCHMARKMESSAGE :
+                $user = AuthenticationManager::getAuthenticatedUser();
+                // $channel = isset($_REQUEST['channel']) ? (string) $_REQUEST['channel'] : null; // remove?
+                $message = isset($_REQUEST['message']) ? (string) $_REQUEST['message'] : null;
+
+                if ($user == null) {
+                    $this->forwardRequest(['Not logged in.']);
+                }
+
+                if ($this->switchMarkedMessage($message, $_POST[self::SWITCHMARKMESSAGE])) {
+                    break;
+                } else {
+                    return false;
+                }
+                break;
+
+            case self::ACTION_UPDATELASTREAD :
+                $user = AuthenticationManager::getAuthenticatedUser();
+
+                if ($user == null) {
+                    $this->forwardRequest(['Not logged in.']);
+                }
+
+                DataManager::updateLastRead();
+
+                break;
             default :
 				throw new \Exception('Unknown controller action: ' . $action);
 				break;
@@ -196,9 +242,9 @@ class Controller
             $this->forwardRequest($errors);
             return false;
         }
-        // send message
+
         $user = AuthenticationManager::getAuthenticatedUser();
-        //$channel = DataManager::getChannelById($channelId);
+
         if ($channelName) {
             $channel = DataManager::getChannelByName($channelName);
             $message = \Data\DataManager::createMessage($user->getId(), $channel->getId(), $text);
@@ -214,5 +260,73 @@ class Controller
         Util::redirect('index.php?view=messenger&channel=' . $channel->getName());
         return true;
     }
+
+
+    protected function switchMarked(string $channelName = null, $target = null) : bool {
+        $errors = array();
+        if (count($errors) > 0) {
+            $this->forwardRequest($errors);
+            return false;
+        }
+
+        $user = AuthenticationManager::getAuthenticatedUser();
+
+        if ($channelName) {
+            $channel = DataManager::getChannelByName($channelName);
+            if($channel !== null)
+                DataManager::markChannel($channel->getId(), $user->getId());
+
+        } else {
+            $channel = null;
+        }
+
+
+        if (!$channel) {
+            $this->forwardRequest(array('could not change status of channel'));
+            return false;
+        }
+        Util::redirect('index.php?view=messenger&channel=' . $channel->getName());
+        return true;
+    }
+
+    protected function switchMarkedMessage(string $messageIdString = null, $target = null) : bool {
+        $errors = array();
+        if (count($errors) > 0) {
+            $this->forwardRequest($errors);
+            return false;
+        }
+
+
+        if ($messageIdString) {
+            $message = DataManager::markMessage((int) $messageIdString);
+        } else {
+            $message = null;
+        }
+
+
+        if (!$message) {
+            $this->forwardRequest(array('could not change status of message'));
+            return false;
+        }
+
+        $channel = isset($_REQUEST['channel']) ? (string) $_REQUEST['channel'] : null;
+        Util::redirect('index.php?view=messenger&channel=' . $channel->getName());
+        return true;
+    }
+    /*
+     *
+                } else {
+
+                    if($channel === null) {
+                        echo("<script>console.log('PHP: "."channel is null"."');</script>");
+
+                    } else {
+
+                        DataManager::markChannel($user->getId(), $channel->getId());
+
+                        Util::redirect('index.php?view=messenger&channel=' . $channel->getName());
+                        break;
+                    }
+     * */
 
 }

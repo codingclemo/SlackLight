@@ -23,8 +23,51 @@ body {
     text-algin: center;
 }
 
-#topmessagebar {
-    position: -webkit-sticky;  // required for Safari
+.channelContent {
+
+}
+
+.channelList {
+    padding-left: 16px;
+    margin-left: 16px;
+}
+
+.channelMeta {
+    padding: 16px 0px;
+    background: white;
+    z-index: +1;
     position: sticky;
-    top: 15px; // required as well.
+    top:0;
+}
+
+.messages {
+    padding: 16px;
+    z-index: -1;
+    padding-bottom: 100px;
+}
+
+.messageBar {
+    position: fixed;
+    bottom: 0px;
+    padding: 16px;
+    min-width: 600px; /* fixed is ugly but no time for bootstrap fun */
+    background: white;
+}
+
+.nav-sidebar h5 {
+    padding-left: 10px;
+}
+
+@ messageMark {
+
+}
+
+@ textMsg {
+    background: white;
+}
+
+.errors {
+    padding: 16px;
+    z-index: +2;
+    padding-bottom: 100px;
 }

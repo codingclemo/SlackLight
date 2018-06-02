@@ -9,13 +9,6 @@ use SlackLight\Channel;
 
 <div class="col-sm-3 col-md-2 sidebar">
 
-    <!--<div class="nav navbar-fixed-top">
-        <ul>
-            <li>
-                <a href="#" class="w3-bar-item w3-button">Username here</a>
-            </li>
-        </ul>
-    </div>-->
     <ul class="nav nav-sidebar">
 
         <?php
@@ -30,15 +23,56 @@ use SlackLight\Channel;
                 // for some reason the array is stored in an array...hence this outer loop
                 foreach ($channels as $channel) {
                     $GLOBALS['userChannels'] = $channel;
+
+                    $showTitle = true;
                     foreach ($channel as $realChannel) {
-                        if ($realChannel === null) {
-                        } else {?>
+                        if ($realChannel !== null && $realChannel->isMarked()) {
+                            // get starred channels
+                            if ($showTitle) {
+                                $showTitle = false;
+                                ?>
+                                <li>
+                                    <h5>Starred</h5>
+                                </li>
+                            <?php }
+
+                            ?>
+                            <li <?php if($realChannel->getName() == $channelName) { ?> class="active" <?php }
+
+                                $hasStarred = true;
+
+                            ?> >
+                                <a href="<?php echo $_SERVER['PHP_SELF']; ?>?view=messenger&channel=<?php echo urlencode($realChannel->getName()) ?>" class=\"w3-bar-item w3-button\">
+                                #<?php echo $realChannel->getName();
+                                $messages[] = DataManager::getMessages($realChannel->getId());
+                                //$messagesLength = count($messages) - 1;
+                                $lastMsgId = $messages[0][count($messages) - 1];?>
+                                <?php
+                                if ($lastMsgId->getId() > $realChannel->getLastRead()) :?>
+                                    <span class="glyphicon glyphicon glyphicon-exclamation-sign"></span>
+                                <?php endif; ?>
+                                </a>
+
+                            </li>
+                        <?php }
+                    }
+
+                    // get regular channels
+
+                    $showTitle = true;
+                    foreach ($channel as $realChannel) {
+                        if ($realChannel !== null && !$realChannel->isMarked()) {
+                            // get starred channels
+                            if ($showTitle) {
+                                $showTitle = false;
+                                ?>
+                                <li>
+                                    <h5>Channels</h5>
+                                </li>
+                            <?php } ?>
                             <li <?php if($realChannel->getName() == $channelName) { ?> class="active" <?php } ?> >
                                 <a href="<?php echo $_SERVER['PHP_SELF']; ?>?view=messenger&channel=<?php echo urlencode($realChannel->getName()) ?>" class=\"w3-bar-item w3-button\">
-                                # <?php echo $realChannel->getName();
-                                    if ($realChannel->isMarked()) {
-                                        ?> <span class="glyphicon glyphicon-star"></span> <?php
-                                    }
+                                #<?php echo $realChannel->getName();
                                 ?>
                                 </a>
                             </li>

@@ -66,7 +66,6 @@ CREATE TABLE orders (
 CREATE TABLE userMessageRef (
 	userId int(11) NOT NULL,
 	messageId int(11) NOT NULL,
-	isRead int(1) NOT NULL DEFAULT '0',
 	marked int(1) NOT NULL DEFAULT '0',
 	PRIMARY KEY (userId, messageId)
 );
@@ -86,6 +85,7 @@ CREATE TABLE messages (
 	text varchar(2000) NOT NULL,
 	creationTime DATETIME DEFAULT CURRENT_TIMESTAMP,
 	edited int(1) NOT NULL DEFAULT '0',
+	deleted int(1) NOT NULL DEFAULT '0',
 	PRIMARY KEY (id)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 CHARSET=utf8;;
 
@@ -93,6 +93,7 @@ CREATE TABLE channelUserRef (
   channelId int(11) NOT NULL,
   userId int(11) NOT NULL,
   marked int(1) NOT NULL DEFAULT '0',
+  lastRead int(11) NOT NULL DEFAULT 0,
   PRIMARY KEY (channelId, userId)
 );
 
@@ -108,10 +109,9 @@ CREATE TABLE channels (
 
 CREATE TABLE users (
 	id int(11) NOT NULL AUTO_INCREMENT,
-
 	userName varchar(255) NOT NULL,
-
 	passwordHash char(40) NOT NULL,
+	lastreadmsg int(11) NOT NULL DEFAULT '0',
 
 	PRIMARY KEY (id),
 	UNIQUE KEY userName (userName)
@@ -181,29 +181,36 @@ INSERT INTO books VALUES (29, 3, 'The C++ Programming Language', 'Bjarne Stroust
 
 
 /* insert dummy users */
-INSERT INTO users VALUES (1, 'scm4', 'a8af855d47d091f0376664fe588207f334cdad22');
-INSERT INTO users VALUES (2, 'clk', '216af29551d5577aaf1c40b32677df4d77211c59');
+INSERT INTO users VALUES (1, 'scm4', 'a8af855d47d091f0376664fe588207f334cdad22', 0);
+INSERT INTO users VALUES (2, 'clk', '216af29551d5577aaf1c40b32677df4d77211c59', 0);
 
 /* insert dummy channels and connect to users */
 INSERT INTO channels VALUES (1, "social-newsboard", "Learn everything about the latest news and gossip inside the company.");
 INSERT INTO channels VALUES (2, "announcements", "News and updates about the company. Read only.");
 INSERT INTO channels VALUES (3, "announcements-hr", "News from people management. Who joins, who proceeds, who leaves");
 
-INSERT INTO channelUserRef VALUES (1, 1, 0);
-INSERT INTO channelUserRef VALUES (2, 1, 1);
-INSERT INTO channelUserRef VALUES (1, 2, 0);
-INSERT INTO channelUserRef VALUES (2, 2, 0);
-INSERT INTO channelUserRef VALUES (3, 2, 0);
+INSERT INTO channelUserRef VALUES (1, 1, 0, 0);
+INSERT INTO channelUserRef VALUES (2, 1, 1, 0);
+INSERT INTO channelUserRef VALUES (1, 2, 0, 0);
+INSERT INTO channelUserRef VALUES (2, 2, 0, 0);
+INSERT INTO channelUserRef VALUES (3, 2, 0, 0);
 
 /* insert dummy messages */
-INSERT INTO messages VALUES (1, 1, 2, "here is the first message in announcements", CURRENT_TIMESTAMP(), 0);
-INSERT INTO messages VALUES (2, 1, 2, "here is the second message in announcements (unread)", CURRENT_TIMESTAMP(), 1);
-INSERT INTO messages VALUES (3, 2, 2, "here is the thrid message in announcements", CURRENT_TIMESTAMP(), 0);
-INSERT INTO messages VALUES (4, 1, 2, "here is the fourth message in announcements (unread)", CURRENT_TIMESTAMP(), 1);
-INSERT INTO messages VALUES (5, 1, 1, "here is the first message in soc-news", CURRENT_TIMESTAMP(), 0);
-INSERT INTO messages VALUES (6, 1, 1, "here is the second message in soc-news (unread)", CURRENT_TIMESTAMP(), 1);
-INSERT INTO messages VALUES (7, 2, 3, "here is the first message in announcements-hr", CURRENT_TIMESTAMP(), 0);
+INSERT INTO messages VALUES (1, 1, 2, "here is the first message in announcements", CURRENT_TIMESTAMP(), 0, 0);
+INSERT INTO messages VALUES (2, 1, 2, "here is the second message in announcements (unread)", CURRENT_TIMESTAMP(), 1, 0);
+INSERT INTO messages VALUES (3, 2, 2, "here is the thrid message in announcements", CURRENT_TIMESTAMP(), 0, 0);
+INSERT INTO messages VALUES (4, 1, 2, "here is the fourth message in announcements (unread)", CURRENT_TIMESTAMP(), 1, 0);
+INSERT INTO messages VALUES (5, 1, 1, "here is the first message in soc-news", CURRENT_TIMESTAMP(), 0, 0);
+INSERT INTO messages VALUES (6, 1, 1, "here is the second message in soc-news (unread)", CURRENT_TIMESTAMP(), 1, 0);
+INSERT INTO messages VALUES (7, 2, 3, "here is the first message in announcements-hr", CURRENT_TIMESTAMP(), 0, 0);
 
+INSERT INTO userMessageRef VALUES (1, 1, 0);
+INSERT INTO userMessageRef VALUES (1, 2, 1);
+INSERT INTO userMessageRef VALUES (1, 3, 0);
+INSERT INTO userMessageRef VALUES (1, 4, 1);
+INSERT INTO userMessageRef VALUES (1, 5, 0);
+INSERT INTO userMessageRef VALUES (1, 6, 1);
+INSERT INTO userMessageRef VALUES (2, 7, 0);
 
 /*
 created DATETIME DEFAULT CURRENT_TIMESTAMP,

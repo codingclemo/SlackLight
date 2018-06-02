@@ -266,7 +266,7 @@ class DataManager implements IDataManager {
 
         //get all the channels that the user has
         $res = self::query($con, "
-			SELECT channelId, marked
+			SELECT channelId, marked, lastRead
 			FROM channelUserRef
 			WHERE userId = ?;
 		", [$userId]);
@@ -283,10 +283,13 @@ class DataManager implements IDataManager {
 
                 // create the channels as objects
                 while ($channelDetails = self::fetchObject($resTwo)) {
+                    $marked = $channel->marked == 0;
+
                     $channels[] = new Channel($channel->channelId,
                         $channelDetails->name,
                         $channelDetails->description,
-                        $channel->marked);
+                        $marked,
+                        $channel->lastRead);
                 }
                 self::close($resTwo);
             }
@@ -300,28 +303,51 @@ class DataManager implements IDataManager {
         return $channels;
     }
 
-    //TODO: Add input variable int $userId and get information from userMessageRef if msg was read or marked
     public static function getMessages(int $channelId) {
         $messages = null;
+        $user = AuthenticationManager::getAuthenticatedUser();
 
         $con = self::getConnection();
 
         //get all the messages that the channel has
         $res = self::query($con, "
-			SELECT id, authorId, channelId, text, creationTime, edited
+			SELECT id, authorId, channelId, text, creationTime, edited, deleted
 			FROM messages
 			WHERE channelId = ?;
 		", [$channelId]);
 
         // create the messages as objects
         while ($message = self::fetchObject($res)) {
-            $messages[] = new Message($message->id,
-                $message->authorId,
-                $message->channelId,
-                $message->text,
-                $message->creationTime,
-                $message->edited);
+
+            $resTwo = self::query($con, "
+                SELECT marked 
+                FROM userMessageRef
+                WHERE ( userId = ?
+                AND messageId = ? )
+        ", [$user->getId(), $message->id]);
+            $m = self::fetchObject($resTwo);
+
+            // if the entry of the message is not in the userMessageRef, set marked as false by default
+            if ($m == null) {
+                $marked = false;
+                //TODO: should I add the entry in the userMessageRef here?
+            } else {
+                $marked = $m->marked;
+            }
+
+            $messages[] = new Message(  $message->id,
+                                        $message->authorId,
+                                        $message->channelId,
+                                        $message->text,
+                                        $message->creationTime,
+                                        $message->edited,
+                                        $message->deleted,
+                                        $marked);
+
+            self::close($resTwo);
         }
+
+
 
         self::close($res);
         self::closeConnection($con);
@@ -331,6 +357,7 @@ class DataManager implements IDataManager {
 
     public static function createMessage(int $authorId, int $channelId, string $text)
     {
+        $user = AuthenticationManager::getAuthenticatedUser();
         $con = self::getConnection();
 
         $con->beginTransaction();
@@ -341,6 +368,12 @@ class DataManager implements IDataManager {
                             VALUES (?, ?, ?, NOW(), 0);
             ", [$authorId, $channelId, $text]);
             $msgId = self::lastInsertId($con);
+
+            self::query($con, "
+                INSERT INTO userMessageRef (userId, messageId, marked) 
+                            VALUES (?, ?, 0);
+            ", [$user->getId(), $msgId]);
+
             $con->commit();
         } catch (\Exception $e) {
             $con->rollBack();
@@ -351,6 +384,7 @@ class DataManager implements IDataManager {
 	    return $msgId;
     }
 
+    /*
     public static function getMessage(int $msgId)
     {
         $con = self::getConnection();
@@ -369,25 +403,39 @@ class DataManager implements IDataManager {
             $message->creationTime,
             $message->edited);
 
-
+        self::close($res);
         self::closeConnection($con);
         return $msg;
     }
-
+*/
 
     public static function getChannelById(int $channelId)
     {
+        $user = AuthenticationManager::getAuthenticatedUser();
         $con = self::getConnection();
 
         $res = self::query($con, "
             SELECT *
             FROM channels
-            WHERE id == ?
+            WHERE id = ?
         ", [$channelId]);
-
         $channel = self::fetchObject($res);
-        $chn = new Channel($channel->id, $channel->name, $channel->description);
 
+        // this is kind of a pain in the ass but necessary due to the channelUserRef
+        $resTwo = self::query($con, "
+            SELECT marked, lastRead
+            FROM channelUserRef
+            WHERE channelId = ?
+            AND userId = ?
+        ", [$channelId, $user->getId()]);
+        $m = self::fetchObject($resTwo);
+
+        $marked = $m->marked == 0;
+
+        $chn = new Channel($channel->id, $channel->name, $channel->description, $marked, $m->lastRead);
+
+        self::close($resTwo);
+        self::close($res);
         self::closeConnection($con);
         return $chn;
     }
@@ -406,20 +454,170 @@ class DataManager implements IDataManager {
 
         // this is kind of a pain in the ass but necessary due to the channelUserRef
         $resTwo = self::query($con, "
-            SELECT marked
+            SELECT marked, lastRead
             FROM channelUserRef
             WHERE channelId = ?
             AND userId = ?
         ", [$channel->id, $user->getId()]);
         $m = self::fetchObject($resTwo);
-        $marked = $m != 0;
 
-        $chn = new Channel($channel->id, $channel->name, $channel->description, $marked);
+        $marked = $m->marked == 0;
 
+        $chn = new Channel($channel->id, $channel->name, $channel->description, $marked, $m->lastRead);
+
+        self::close($resTwo);
+        self::close($res);
         self::closeConnection($con);
         return $chn;
     }
+
+    public static function markChannel(int $channelId, int $userId){
+        $con = self::getConnection();
+
+        $channel = DataManager::getChannelById($channelId);
+        if ($channel->isMarked())
+            $newMarked = (int) 0;
+        else
+            $newMarked = (int) 1;
+        /*
+                var_dump($newMarked);
+                var_dump($channelId);
+                var_dump($userId);
+                die();
+        */
+
+        $con->beginTransaction(); // not sure if necessary
+
+        try {
+            self::query($con, "
+                    UPDATE channelUserRef 
+                    SET marked = ?
+                    WHERE  userId = ?
+                    AND channelId = ?
+                ", [$newMarked, $userId, $channelId]);
+            $con->commit();
+        } catch (\Exception $e) {
+            $con->rollBack();
+            $msgId = NULL;
+        }
+
+        self::closeConnection($con);
+    }
+
+    public static function markMessage(int $messageId){
+        $user = AuthenticationManager::getAuthenticatedUser();
+        $con = self::getConnection();
+        // check if message exists in userMessageRef
+        $res = self::query($con, "
+                SELECT marked 
+                FROM userMessageRef
+                WHERE ( userId = ?
+                AND messageId = ? )
+        ", [$user->getId(), $messageId]);
+        $message = self::fetchObject($res);
+
+
+
+        if ($message == null) {
+            // if message does not exist in userMessageRef create and set marked true
+            self::query($con, "
+                INSERT INTO userMessageRef (userId, messageId, marked) 
+                VALUES (?, ?, ?)
+            ", [$user->getId(), $messageId, 1]);
+        } else {
+            // if message exists in userMessageRef then switch marked
+            $oldMarked = $message->marked;
+            if ($oldMarked == 0) {
+                $newMarked = 1;
+            } else {
+                $newMarked = 0;
+            }
+
+            self::query($con, "
+                    UPDATE userMessageRef 
+                    SET marked = ?
+                    WHERE  userId = ?
+                    AND messageId = ?
+                ", [$newMarked, $user->getId(), $messageId]);
+        }
+
+        self::close($res);
+        self::closeConnection($con);
+    }
+
+    public static function updateLastRead(){
+        $user = AuthenticationManager::getAuthenticatedUser();
+        $channelName = isset($_REQUEST['channel']) ? $_REQUEST['channel'] : null;
+        $channel = self::getChannelByName($channelName);
+
+        $con = self::getConnection();
+
+        $preRes = self::query($con, "
+                SELECT * 
+                FROM messages 
+                WHERE channelId = ?
+                ORDER BY id DESC LIMIT 0, 1
+                ", [ $channel->getId()]);
+        $oldLastRead = self::fetchObject($preRes);
+
+        $res = self::query($con, "
+                UPDATE channelUserRef 
+                SET lastRead = ?
+                WHERE  userId = ?
+                AND channelId = ?
+        ", [$oldLastRead->id, $user->getId(), $channel->getId() ]);
+
+        self::close($res);
+        self::closeConnection($con);
+    }
+
 }
+
+/*
+    public static function getMessageById(int $messageId){
+        $user = AuthenticationManager::getAuthenticatedUser();
+        $con = self::getConnection();
+        $res = self::query($con, "
+            SELECT *
+            FROM messages
+            WHERE id = ?
+        ", [$messageId]);
+        $message = self::fetchObject($res);
+
+        if (message !== null) {
+            $resTwo = self::query($con, "
+                SELECT marked
+                FROM userMessageRef
+                WHERE ( userId = ?
+                AND messageId = ? )
+        ", [$user->getId(), $message->id]);
+            $m = self::fetchObject($resTwo);
+
+            // if the entry of the message is not in the userMessageRef, set marked as false by default
+            if ($m == null) {
+                $marked = false;
+                //TODO: should I add the entry in the userMessageRef here?
+            } else {
+                $marked = $m->marked;
+            }
+            self::close($resTwo);
+            $returnMsg = new Message(   $message->id,
+                                        $message->authorId,
+                                        $message->channelId,
+                                        $message->text,
+                                        $message->creationTime,
+                                        $message->edited,
+                                        $message->deleted,
+                                        $marked);
+        } else {
+            $returnMsg = null;
+        }
+
+        self::close($res);
+        self::closeConnection($con);
+        return $returnMsg;
+    }
+ */
 
 
 

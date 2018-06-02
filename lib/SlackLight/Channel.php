@@ -13,14 +13,14 @@ class Channel extends Entity {
     private $name;
     private $description;
     private $marked;
+    private $lastRead;
 
-    public function __construct(int $channelId, string $channelName, string $channelDescription, int $channelMarked)  {
+    public function __construct(int $channelId, string $channelName, string $channelDescription, int $channelMarked, int $lastRead)  {
         parent::__construct($channelId);
         $this->name = $channelName;
         $this->description = $channelDescription;
         $this->marked = ($channelMarked == 0);
-
-
+        $this->lastRead = $lastRead;
     }
 
     /*public function getChannelId() : int {
@@ -44,7 +44,7 @@ class Channel extends Entity {
         return $this->marked;
     }
 
-    public function setMarked(bool $b) {
-        $this->marked = $b;
+    public function getLastRead() {
+        return $this->lastRead;
     }
 }

@@ -3,7 +3,7 @@
     <?php
 
     use SlackLight\Util;
-
+/*
     if (isset($errors) && is_array($errors)): ?>
         <div class="errors alert alert-danger">
             <ul>
@@ -12,7 +12,7 @@
                 <?php endforeach; ?>
             </ul>
         </div>
-    <?php endif; ?>
+    <?php endif; */ ?>
 
     <!--/display error messages-->
 
