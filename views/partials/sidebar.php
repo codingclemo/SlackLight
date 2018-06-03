@@ -16,7 +16,6 @@ use SlackLight\Channel;
             $user = AuthenticationManager::getAuthenticatedUser();
             $channels[] = \Data\DataManager::getChannelsByUserId($user->getid());
 
-
             $channelName = isset($_REQUEST['channel']) ? $_REQUEST['channel'] : null;
 
             if ($channels !== null) {
@@ -38,19 +37,10 @@ use SlackLight\Channel;
 
                             ?>
                             <li <?php if($realChannel->getName() == $channelName) { ?> class="active" <?php }
-
                                 $hasStarred = true;
-
                             ?> >
                                 <a href="<?php echo $_SERVER['PHP_SELF']; ?>?view=messenger&channel=<?php echo urlencode($realChannel->getName()) ?>" class=\"w3-bar-item w3-button\">
-                                #<?php echo $realChannel->getName();
-                                $messages[] = DataManager::getMessages($realChannel->getId());
-                                //$messagesLength = count($messages) - 1;
-                                $lastMsgId = $messages[0][count($messages) - 1];?>
-                                <?php
-                                if ($lastMsgId->getId() > $realChannel->getLastRead()) :?>
-                                    <span class="glyphicon glyphicon glyphicon-exclamation-sign"></span>
-                                <?php endif; ?>
+                                #<?php echo $realChannel->getName();?>
                                 </a>
 
                             </li>
@@ -58,11 +48,9 @@ use SlackLight\Channel;
                     }
 
                     // get regular channels
-
                     $showTitle = true;
                     foreach ($channel as $realChannel) {
                         if ($realChannel !== null && !$realChannel->isMarked()) {
-                            // get starred channels
                             if ($showTitle) {
                                 $showTitle = false;
                                 ?>
@@ -72,8 +60,7 @@ use SlackLight\Channel;
                             <?php } ?>
                             <li <?php if($realChannel->getName() == $channelName) { ?> class="active" <?php } ?> >
                                 <a href="<?php echo $_SERVER['PHP_SELF']; ?>?view=messenger&channel=<?php echo urlencode($realChannel->getName()) ?>" class=\"w3-bar-item w3-button\">
-                                #<?php echo $realChannel->getName();
-                                ?>
+                                #<?php echo $realChannel->getName();?>
                                 </a>
                             </li>
                         <?php }

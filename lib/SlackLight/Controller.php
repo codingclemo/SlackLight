@@ -28,9 +28,11 @@ class Controller
     const ACTION_SWITCHMARKCHANNEL = 'switchMarkChannel';
     const ACTION_SWITCHMARKMESSAGE = 'switchMarkMessage';
     const ACTION_UPDATELASTREAD = 'updateLastRead';
+    const ACTION_DELETEMESSAGE = 'deleteMsg';
     const SENDMSG = 'sendMessage';
-    const SWITCHMARKCHANNEL = 'switchMarked';
-    const SWITCHMARKMESSAGE = 'switchMarkedMessage';
+    //const SWITCHMARKCHANNEL = 'switchMarked';
+    //const SWITCHMARKMESSAGE = 'switchMarkedMessage';
+    const DELETEMESSAGE = 'deleteMessage';
 	const USER_NAME = 'userName';
 	const USER_PASSWORD = 'password';
 
@@ -155,11 +157,13 @@ class Controller
                 // $channel = isset($_REQUEST['channel']) ? (string) $_REQUEST['channel'] : null; // remove?
                 $message = isset($_REQUEST['message']) ? (string) $_REQUEST['message'] : null;
 
+                Util::logError("controller switchmarkmessage", "messageId = ".$message);
+
                 if ($user == null) {
                     $this->forwardRequest(['Not logged in.']);
                 }
 
-                if ($this->switchMarkedMessage($message, $_POST[self::SWITCHMARKMESSAGE])) {
+                if ($this->switchMarkedMessage($message)) {
                     break;
                 } else {
                     return false;
@@ -176,6 +180,22 @@ class Controller
                 DataManager::updateLastRead();
 
                 break;
+
+            case self::ACTION_DELETEMESSAGE :
+                $user = AuthenticationManager::getAuthenticatedUser();
+
+                if ($user == null) {
+                    $this->forwardRequest(['Not logged in.']);
+                }
+
+                if (isset($_REQUEST['message'])) {
+                    DataManager::deleteMessage($_REQUEST['message']);
+                }
+
+                $channel = isset($_REQUEST['channel']) ? $_REQUEST['channel'] : null;
+                Util::redirect('index.php?view=messenger&channel=' . $channel);
+                break;
+
             default :
 				throw new \Exception('Unknown controller action: ' . $action);
 				break;
@@ -289,28 +309,19 @@ class Controller
         return true;
     }
 
-    protected function switchMarkedMessage(string $messageIdString = null, $target = null) : bool {
-        $errors = array();
-        if (count($errors) > 0) {
-            $this->forwardRequest($errors);
-            return false;
-        }
+    protected function switchMarkedMessage(string $messageIdString = null) : bool {
 
+        if ($messageIdString != null) {
+            Util::logError("controller switchmarkmessage", "messageIdString = ".$messageIdString);
 
-        if ($messageIdString) {
-            $message = DataManager::markMessage((int) $messageIdString);
+            DataManager::markMessage((int) $messageIdString);
         } else {
-            $message = null;
-        }
-
-
-        if (!$message) {
             $this->forwardRequest(array('could not change status of message'));
             return false;
         }
 
         $channel = isset($_REQUEST['channel']) ? (string) $_REQUEST['channel'] : null;
-        Util::redirect('index.php?view=messenger&channel=' . $channel->getName());
+        Util::redirect('index.php?view=messenger&channel=' . $channel);
         return true;
     }
     /*

@@ -15,7 +15,7 @@ use Data\DataManager;
             </div>
 
             <?php
-
+/*
             foreach ($userChannels as $realChannel) {
                 if ($realChannel->getName() == $channelName) {
                     $channelDesc = $realChannel->getDescription();
@@ -23,37 +23,38 @@ use Data\DataManager;
                 }
 
             }
-
+*/
 
             //TODO: Check if channel is starred for user
 
-            if ($channelName == NULL ) {
+            if (!isset($_REQUEST['channel'])) {
             //load other site
             ?>
 
             <div class="channelMeta col-xs-12 col-md-7">
                     <h2 class="page-header"><?php echo "Welcome back!"; ?></h2>
-
                     <h5 class="sub-header"><?php echo "Select a channel and see what's up" ?></h5>
             </div>
             <?php
             } else {
-            $realChannel = DataManager::getChannelByName($channelName);
+                $realChannel = DataManager::getChannelByName($_REQUEST['channel']);
+                $channelName = $realChannel->getName();
+                $channelDesc = $realChannel->getDescription();
+                $channelId = $realChannel->getId();
 
-            $messages[] = \Data\DataManager::getMessages($channelId);
             ?>
 <div class="col-xs-12 col-md-7">
     <div class="channelMeta">
         <h2 class="page-header"># <?php echo $channelName ?>
             <?php if ($realChannel->isMarked()): ?>
                 <form class="form-horizontal" method="post" id="channelMark" action="<?php echo Util::action(SlackLight\Controller::ACTION_SWITCHMARKCHANNEL, array('view' => $view, "channel" => $channelName)); ?>">
-                    <button type="submit" class="btn btn-primary-outline" name="<?php print SlackLight\Controller::SWITCHMARKCHANNEL; ?>" form="channelMark">
+                    <button type="submit" class="btn btn-primary-outline" form="channelMark">
                         <span class="glyphicon glyphicon-star"></span>
                     </button>
                 </form>
             <?php else: ?>
                 <form class="form-horizontal" method="post" id="channelNoMark" action="<?php echo Util::action(SlackLight\Controller::ACTION_SWITCHMARKCHANNEL, array('view' => $view, "channel" => $channelName)); ?>">
-                    <button type="submit" class="btn btn-primary-outline" name="<?php print SlackLight\Controller::SWITCHMARKCHANNEL; ?>" form="channelNoMark">
+                    <button type="submit" class="btn btn-primary-outline" form="channelNoMark">
                         <span class="glyphicon glyphicon-star-empty"></span>
                     </button>
                 </form>
@@ -65,10 +66,14 @@ use Data\DataManager;
 
     <div class="messages" id="msgs">
         <?php //Add messages in here
+        $messages[] = \Data\DataManager::getMessages($channelId);
 
+
+        try {
+            if ($messages[0] == null)
+                throw new Exception("no messages");
 
         foreach ($messages[0] as $message) {
-
             $user = \Data\DataManager::getUserById($message->getAuthorId());
             $messageId = (string) $message->getId();
             ?>
@@ -79,6 +84,7 @@ use Data\DataManager;
                     <?php
                     echo $message->getTimestamp();
                     echo " msgId=".$messageId;
+
                     if ($message->isEdited())
                         echo " (edited)";
                     ?>
@@ -86,34 +92,41 @@ use Data\DataManager;
                     <?php if ($message->isMarked()): ?>
 
                         <?php
-                        //var_dump($message->getId());
-
-                        //var_dump($messageId);
                         ?>
                         <form class="form-horizontal" method="post" id="messageMark" action="<?php echo Util::action(SlackLight\Controller::ACTION_SWITCHMARKMESSAGE, array('view' => $view, "channel" => $channelName, "message" => $messageId)); ?>">
-                            <button type="submit" class="btn btn-primary-outline" name="<?php print SlackLight\Controller::SWITCHMARKMESSAGE; ?>" form="messageMark">
+                            <button type="submit" class="btn btn-primary-outline" form="messageMark">
                                 <span class="glyphicon glyphicon-star"></span>
                             </button>
                         </form>
                     <?php else: ?>
                         <form class="form-horizontal" method="post" id="messageNoMark" action="<?php echo Util::action(SlackLight\Controller::ACTION_SWITCHMARKMESSAGE, array('view' => $view, "channel" => $channelName, "message" => $messageId)); ?>">
-                            <button type="submit" class="btn btn-primary-outline" name="<?php print SlackLight\Controller::SWITCHMARKMESSAGE; ?>" form="messageNoMark">
+                            <button type="submit" class="btn btn-primary-outline" form="messageNoMark">
                                 <span class="glyphicon glyphicon-star-empty"></span>
                             </button>
                         </form>
-                    <?php endif; ?>
+                    <?php endif;
+                    ?>
 
+                    <?php
+                    if ($message->getAuthorId() == AuthenticationManager::getAuthenticatedUser()->getId()): ?>
+                        <form class="form-horizontal" method="post" id="trashMsg" action="<?php echo Util::action(SlackLight\Controller::ACTION_DELETEMESSAGE, array('view' => $view, "channel" => $channelName, "message" => $messageId)); ?>">
+                            <button type="submit" class="btn btn-primary-outline"  form="trashMsg">
+                                <span class="glyphicon glyphicon glyphicon-trash"></span>
+                            </button>
+                        </form>
+                    <?php endif;?>
                 </div>
                 <div class="panel-body">
                     <?php
 
-                    if ($realChannel->getLastRead() < $messageId) : ?>
+                    if ($realChannel->getLastRead() < (int) $messageId) : ?>
                         <strong>
                     <?php
                     endif;
                     echo $message->getText();
+                    echo "deleted: ".$message->isDeleted();
 
-                    if ($realChannel->getLastRead() < $messageId) : ?>
+                    if ($realChannel->getLastRead() < (int) $messageId) : ?>
                         </strong>
                     <?php
                     endif; ?>
@@ -121,6 +134,9 @@ use Data\DataManager;
             </div>
 
             <?php
+        }
+        } catch (\Exception $e) {
+            // do magic
         }
         ?>
 
