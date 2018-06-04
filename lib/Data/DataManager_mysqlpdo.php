@@ -563,6 +563,31 @@ class DataManager implements IDataManager {
         self::closeConnection($con);
     }
 
+    public static function editMessage(int $messageId, string $text) {
+        $user = AuthenticationManager::getAuthenticatedUser();
+        $con = self::getConnection();
+
+        $con->beginTransaction();
+
+        try {
+            self::query($con, "
+                UPDATE messages
+                SET text = ?, edited = 1
+                WHERE id = ?
+                AND authorId = ?
+            ", [ $text, $messageId, $user->getId()]);
+            $msgId = $messageId; // just for checking if it worked
+
+            $con->commit();
+        } catch (\Exception $e) {
+            $con->rollBack();
+            $msgId = NULL;
+        }
+
+        self::closeConnection($con);
+        return $msgId;
+    }
+
 }
 
 

@@ -197,11 +197,11 @@ INSERT INTO channelUserRef VALUES (3, 2, 0, 0);
 
 /* insert dummy messages */
 INSERT INTO messages VALUES (1, 1, 2, "here is the first message in announcements", CURRENT_TIMESTAMP(), 0, 0);
-INSERT INTO messages VALUES (2, 1, 2, "here is the second message in announcements (unread)", CURRENT_TIMESTAMP(), 1, 0);
+INSERT INTO messages VALUES (2, 1, 2, "here is the second message in announcements", CURRENT_TIMESTAMP(), 0, 0);
 INSERT INTO messages VALUES (3, 2, 2, "here is the thrid message in announcements", CURRENT_TIMESTAMP(), 0, 0);
-INSERT INTO messages VALUES (4, 1, 2, "here is the fourth message in announcements (unread)", CURRENT_TIMESTAMP(), 1, 0);
+INSERT INTO messages VALUES (4, 1, 2, "here is the fourth message in announcements", CURRENT_TIMESTAMP(), 0, 0);
 INSERT INTO messages VALUES (5, 1, 1, "here is the first message in soc-news", CURRENT_TIMESTAMP(), 0, 0);
-INSERT INTO messages VALUES (6, 1, 1, "here is the second message in soc-news (unread)", CURRENT_TIMESTAMP(), 1, 0);
+INSERT INTO messages VALUES (6, 1, 1, "here is the second message in soc-news", CURRENT_TIMESTAMP(), 0, 0);
 INSERT INTO messages VALUES (7, 2, 3, "here is the first message in announcements-hr", CURRENT_TIMESTAMP(), 0, 0);
 
 INSERT INTO userMessageRef VALUES (1, 1, 0);
