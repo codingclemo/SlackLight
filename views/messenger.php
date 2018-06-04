@@ -15,18 +15,6 @@ use Data\DataManager;
             </div>
 
             <?php
-/*
-            foreach ($userChannels as $realChannel) {
-                if ($realChannel->getName() == $channelName) {
-                    $channelDesc = $realChannel->getDescription();
-                    $channelId = $realChannel->getId();
-                }
-
-            }
-*/
-
-            //TODO: Check if channel is starred for user
-
             if (!isset($_REQUEST['channel'])) {
             //load other site
             ?>
@@ -64,6 +52,37 @@ use Data\DataManager;
         <h5 class="sub-header"><?php echo $channelDesc; ?></h5>
     </div>
 
+    <div class="starredMessages" id="msgs">
+        <?php //Add starred messages in here
+        $messages[] = \Data\DataManager::getMessages($channelId);
+        try {
+            if ($messages[0] == null)
+                throw new Exception("no messages");
+
+        foreach ($messages[0] as $message) {
+
+            if ($message->isMarked()) :
+
+                $user = \Data\DataManager::getUserById($message->getAuthorId());
+                $messageId = (string) $message->getId();?>
+                <div class="panel">
+                    <?php
+                    ?><span class="glyphicon glyphicon-star"></span><strong><?php
+                    echo $user->getUserName().":\n"; ?></strong><?php
+                    echo $message->getText();
+                    ?>
+
+                </div>
+            <?php endif; ?>
+            <?php
+        }
+        } catch (\Exception $e) {
+            // do magic
+        }
+        ?>
+    </div>
+
+
     <div class="messages" id="msgs">
         <?php //Add messages in here
         $messages[] = \Data\DataManager::getMessages($channelId);
@@ -75,7 +94,6 @@ use Data\DataManager;
             $user = \Data\DataManager::getUserById($message->getAuthorId());
             $messageId = (string) $message->getId();
             ?>
-
             <div class="panel panel-default">
                 <div class="panel-heading">
                     <h3 class="panel-title"><?php echo $user->getUserName() ?></h3>

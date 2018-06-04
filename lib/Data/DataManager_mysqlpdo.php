@@ -199,6 +199,16 @@ class DataManager implements IDataManager {
                 ]);
             $userId = self::lastInsertId($con);
 
+            for ($i = 1; $i <=2; $i++) {
+                self::query($con,"
+                INSERT INTO channelUserRef (channelId, userId, marked, lastRead)
+                VALUES (?, ?, 0, 0);
+                ", [
+                    $i,
+                    $userId
+                ]);
+            }
+
             $con->commit();
 
         } catch (\Exception $e) {

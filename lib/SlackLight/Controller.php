@@ -121,7 +121,7 @@ class Controller
             case self::ACTION_REGISTER :
                 if (!AuthenticationManager::registerUser($_REQUEST[self::USER_NAME], $_REQUEST[self::USER_PASSWORD]))
                     self::forwardRequest(['User already exists.']);
-                Util::redirect();
+                Util::redirect("?view=messenger");
                 break;
             case self::ACTION_SENDMSG :
                 $user = AuthenticationManager::getAuthenticatedUser();
